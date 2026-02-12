@@ -1,0 +1,204 @@
+# Databricks Asset Bundle for Acceleray
+
+bundle:
+  name: acceleray
+  
+resources:
+  jobs:
+    ray_hyperparameter_tuning:
+      name: "Ray Hyperparameter Tuning Job"
+      
+      tasks:
+        - task_key: "hyperparameter_tuning"
+          notebook_task:
+            notebook_path: "${workspace.file_path}/notebooks/01_hyperparameter_tuning"
+            source: WORKSPACE
+          
+          existing_cluster_id: "0210-211037-wbizkbf4"
+          
+          # Alternate: create new cluster per job
+          # new_cluster:
+          #   spark_version: "13.3.x-scala2.12"
+          #   node_type_id: "i3.2xlarge"
+          #   autoscale:
+          #     min_workers: 2
+          #     max_workers: 8
+          #   
+          #   spark_conf:
+          #     spark.databricks.delta.preview.enabled: "true"
+          #   
+          #   custom_tags:
+          #     project: "ray-ml"
+          #     job: "hyperparameter-tuning"
+      
+      schedule:
+        quartz_cron_expression: "0 0 2 * * ?"  # Daily at 2 AM
+        timezone_id: "America/Los_Angeles"
+        pause_status: "UNPAUSED"
+      
+      email_notifications:
+        on_success:
+          - "data-science-team@company.com"
+        on_failure:
+          - "data-science-team@company.com"
+      
+      max_concurrent_runs: 1
+      timeout_seconds: 7200  # 2 hours
+    
+    ray_distributed_training:
+      name: "Ray Distributed Training Job"
+      
+      tasks:
+        - task_key: "distributed_training"
+          notebook_task:
+            notebook_path: "${workspace.file_path}/notebooks/02_distributed_training"
+            source: WORKSPACE
+          
+          new_cluster:
+            spark_version: "13.3.x-gpu-ml-scala2.12"
+            node_type_id: "g4dn.xlarge"
+            autoscale:
+              min_workers: 1
+              max_workers: 4
+            
+            custom_tags:
+              project: "ray-ml"
+              job: "distributed-training"
+              gpu: "true"
+      
+      max_concurrent_runs: 1
+      timeout_seconds: 14400  # 4 hours
+    
+    ray_batch_inference:
+      name: "Ray Batch Inference Job"
+      
+      tasks:
+        - task_key: "batch_inference"
+          notebook_task:
+            notebook_path: "${workspace.file_path}/notebooks/03_batch_inference"
+            source: WORKSPACE
+            base_parameters:
+              input_table: "credit_applications_engineered"
+              output_table: "credit_risk_predictions"
+              model_path: "/dbfs/models/credit_risk_final.json"
+          
+          new_cluster:
+            spark_version: "13.3.x-scala2.12"
+            node_type_id: "i3.2xlarge"
+            autoscale:
+              min_workers: 4
+              max_workers: 16
+            
+            custom_tags:
+              project: "ray-ml"
+              job: "batch-inference"
+      
+      schedule:
+        quartz_cron_expression: "0 0 */6 * * ?"  # Every 6 hours
+        timezone_id: "America/Los_Angeles"
+        pause_status: "UNPAUSED"
+      
+      max_concurrent_runs: 1
+      timeout_seconds: 3600  # 1 hour
+    
+    ray_end_to_end_pipeline:
+      name: "Ray End-to-End ML Pipeline"
+      
+      tasks:
+        - task_key: "data_ingestion"
+          spark_python_task:
+            python_file: "${workspace.file_path}/src/data/data_loader.py"
+          
+          new_cluster:
+            spark_version: "13.3.x-scala2.12"
+            node_type_id: "i3.xlarge"
+            num_workers: 2
+        
+        - task_key: "feature_engineering"
+          depends_on:
+            - task_key: "data_ingestion"
+          
+          notebook_task:
+            notebook_path: "${workspace.file_path}/notebooks/04_end_to_end_pipeline"
+            source: WORKSPACE
+          
+          new_cluster:
+            spark_version: "13.3.x-scala2.12"
+            node_type_id: "i3.2xlarge"
+            autoscale:
+              min_workers: 4
+              max_workers: 8
+        
+        - task_key: "model_training"
+          depends_on:
+            - task_key: "feature_engineering"
+          
+          notebook_task:
+            notebook_path: "${workspace.file_path}/notebooks/04_end_to_end_pipeline"
+            source: WORKSPACE
+          
+          new_cluster:
+            spark_version: "13.3.x-scala2.12"
+            node_type_id: "i3.2xlarge"
+            autoscale:
+              min_workers: 4
+              max_workers: 8
+        
+        - task_key: "batch_predictions"
+          depends_on:
+            - task_key: "model_training"
+          
+          notebook_task:
+            notebook_path: "${workspace.file_path}/notebooks/03_batch_inference"
+            source: WORKSPACE
+          
+          new_cluster:
+            spark_version: "13.3.x-scala2.12"
+            node_type_id: "i3.2xlarge"
+            autoscale:
+              min_workers: 4
+              max_workers: 12
+      
+      schedule:
+        quartz_cron_expression: "0 0 0 * * ?"  # Daily at midnight
+        timezone_id: "America/Los_Angeles"
+        pause_status: "PAUSED"  # Start paused
+      
+      email_notifications:
+        on_success:
+          - "data-science-team@company.com"
+        on_failure:
+          - "data-science-team@company.com"
+          - "ml-ops-team@company.com"
+      
+      max_concurrent_runs: 1
+      timeout_seconds: 21600  # 6 hours
+
+# Sync code to workspace
+sync:
+  exclude:
+    - ".git"
+    - ".github"
+    - "__pycache__"
+    - "*.pyc"
+    - ".DS_Store"
+    - "*.egg-info"
+    - "MANUAL_PUSH_INSTRUCTIONS.md"
+    - "deploy_to_databricks.sh"
+    - "BUNDLE_DEPLOYMENT.md"
+    - ".databrickscfg.example"
+    - "docs"
+
+targets:
+  dev:
+    mode: production
+    default: true
+    workspace:
+      host: https://dbc-47a3dcaa-ae3e.cloud.databricks.com
+      root_path: /Workspace/Shared/acceleray
+  
+  prod:
+    mode: production
+    workspace:
+      host: https://dbc-47a3dcaa-ae3e.cloud.databricks.com
+      root_path: /Workspace/Shared/acceleray-production

@@ -1,6 +1,32 @@
-# Keep repo minimal by default.
+# Keep repo controlled by default.
 *
 
-# Allow only this README and gitignore.
+# Always allow top-level essentials.
 !README.md
 !.gitignore
+!LICENSE
+
+# Core Python package and project config.
+!setup.py
+!requirements.txt
+!databricks.yml
+!deploy_to_databricks.sh
+!verify_ray.py
+
+# Databricks bundle config.
+!databricks_bundle/
+!databricks_bundle/**
+
+# Runtime/training configs.
+!configs/
+!configs/**
+
+# Source code.
+!src/
+!src/**
+
+# Notebooks and tests.
+!notebooks/
+!notebooks/**
+!tests/
+!tests/**

@@ -1,0 +1,34 @@
+# Core Ray libraries
+ray[default]==2.7.1
+ray[data]==2.9.0
+ray[train]==2.9.0
+ray[tune]==2.9.0
+
+# Machine Learning frameworks
+torch==2.1.0
+torchvision==0.16.0
+xgboost==2.0.3
+scikit-learn==1.3.2
+lightgbm==4.1.0
+
+# Hyperparameter optimization
+hyperopt==0.2.7
+optuna==3.5.0
+
+# Data processing
+pandas==2.1.4
+numpy==1.24.3
+pyarrow==14.0.1
+
+# MLflow integration
+mlflow==2.9.2
+
+# Utilities
+pyyaml==6.0.1
+matplotlib==3.8.2
+seaborn==0.13.0
+tqdm==4.66.1
+
+# Testing
+pytest==7.4.3
+pytest-cov==4.1.0

@@ -1,0 +1,254 @@
+# Training Configuration for Ray ML Pipelines
+
+# XGBoost Configuration
+xgboost:
+  # Default hyperparameters
+  default_params:
+    objective: "binary:logistic"
+    eval_metric: "auc"
+    max_depth: 6
+    learning_rate: 0.1
+    n_estimators: 100
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_weight: 1
+    gamma: 0
+    reg_alpha: 0
+    reg_lambda: 1
+    tree_method: "hist"
+    random_state: 42
+  
+  # Hyperparameter search space for Ray Tune
+  search_space:
+    max_depth:
+      type: "randint"
+      low: 3
+      high: 10
+    min_child_weight:
+      type: "uniform"
+      low: 1
+      high: 10
+    subsample:
+      type: "uniform"
+      low: 0.5
+      high: 1.0
+    colsample_bytree:
+      type: "uniform"
+      low: 0.5
+      high: 1.0
+    learning_rate:
+      type: "loguniform"
+      low: 0.001
+      high: 0.3
+    n_estimators:
+      type: "choice"
+      values: [50, 100, 200, 300, 500]
+    gamma:
+      type: "uniform"
+      low: 0
+      high: 5
+    reg_alpha:
+      type: "loguniform"
+      low: 0.01
+      high: 100
+    reg_lambda:
+      type: "loguniform"
+      low: 0.01
+      high: 100
+  
+  # Training configuration
+  training:
+    early_stopping_rounds: 10
+    verbose_eval: false
+    num_boost_round: 500
+
+# PyTorch Configuration
+pytorch:
+  # Model architecture
+  model:
+    hidden_dims: [256, 128, 64]
+    dropout: 0.3
+    activation: "relu"
+    batch_norm: true
+  
+  # Training configuration
+  training:
+    batch_size: 128
+    learning_rate: 0.001
+    epochs: 20
+    optimizer: "adam"
+    weight_decay: 0.0001
+    scheduler: "step_lr"
+    scheduler_step_size: 10
+    scheduler_gamma: 0.1
+  
+  # Hyperparameter search space
+  search_space:
+    learning_rate:
+      type: "loguniform"
+      low: 0.00001
+      high: 0.01
+    batch_size:
+      type: "choice"
+      values: [16, 32, 64, 128, 256]
+    hidden_dims:
+      type: "choice"
+      values:
+        - [128, 64]
+        - [256, 128, 64]
+        - [512, 256, 128]
+        - [256, 256]
+        - [512, 512]
+    dropout:
+      type: "uniform"
+      low: 0.1
+      high: 0.5
+    weight_decay:
+      type: "loguniform"
+      low: 0.000001
+      high: 0.001
+
+# Ray Tune Configuration
+ray_tune:
+  # Search algorithm
+  search_algorithm: "hyperopt"  # Options: hyperopt, optuna, random
+  
+  # Scheduler
+  scheduler: "asha"  # Options: asha, pbt, median_stopping
+  scheduler_params:
+    max_t: 500
+    grace_period: 50
+    reduction_factor: 3
+  
+  # Tuning parameters
+  num_samples: 100
+  max_concurrent_trials: 8
+  metric: "val_auc"
+  mode: "max"
+  
+  # Resources per trial
+  resources_per_trial:
+    cpu: 1
+    gpu: 0
+
+# Ray Train Configuration
+ray_train:
+  # Scaling configuration
+  scaling:
+    num_workers: 4
+    use_gpu: false
+    resources_per_worker:
+      CPU: 2
+      GPU: 0
+  
+  # GPU configuration
+  gpu_scaling:
+    num_workers: 4
+    use_gpu: true
+    resources_per_worker:
+      CPU: 2
+      GPU: 1
+  
+  # Checkpoint configuration
+  checkpoint:
+    num_to_keep: 3
+    checkpoint_frequency: 5
+    checkpoint_at_end: true
+  
+  # Failure configuration
+  failure:
+    max_failures: 3
+
+# Ray Data Configuration
+ray_data:
+  # Batch inference
+  batch_inference:
+    batch_size: 10000
+    num_actors: 8
+    max_concurrent_batches: 16
+  
+  # Data processing
+  preprocessing:
+    batch_size: 5000
+    num_cpus: 1
+  
+  # I/O configuration
+  io:
+    read_parallelism: 100
+    write_parallelism: 100
+
+# Data Configuration
+data:
+  # Train/val/test split ratios
+  split:
+    train: 0.7
+    validation: 0.15
+    test: 0.15
+  
+  # Preprocessing
+  preprocessing:
+    scaling_method: "standard"  # Options: standard, minmax, none
+    handle_missing: "mean"  # Options: mean, median, mode, drop, fill
+    remove_outliers: true
+    outlier_threshold: 3.0  # Number of standard deviations
+  
+  # Feature engineering
+  feature_engineering:
+    create_interactions: true
+    max_interactions: 5
+    polynomial_features: false
+    polynomial_degree: 2
+
+# MLflow Configuration
+mlflow:
+  experiment_name: "/Users/your.email@company.com/ray-ml-experiments"
+  
+  # Tracking
+  tracking:
+    log_params: true
+    log_metrics: true
+    log_models: true
+    log_artifacts: true
+  
+  # Model registry
+  registry:
+    registered_model_name: "ray_ml_model"
+    tags:
+      framework: "ray"
+      team: "data-science"
+
+# Monitoring and Logging
+monitoring:
+  # Ray Dashboard
+  ray_dashboard: true
+  
+  # Logging
+  log_level: "INFO"  # Options: DEBUG, INFO, WARNING, ERROR
+  log_to_file: true
+  log_path: "/dbfs/ray_logs"
+  
+  # Metrics
+  track_memory: true
+  track_cpu: true
+  track_gpu: true
+
+# Production Configuration
+production:
+  # Model serving
+  serving:
+    num_replicas: 2
+    max_concurrent_queries: 100
+    timeout_seconds: 60
+  
+  # Batch processing
+  batch:
+    chunk_size: 100000
+    checkpoint_interval: 10000
+    retry_on_failure: true
+    max_retries: 3
+  
+  # Resource limits
+  resources:
+    max_memory_per_worker: "16GB"
+    max_object_store_memory: "100GB"
+    max_workers: 32
