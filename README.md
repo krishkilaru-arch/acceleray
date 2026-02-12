@@ -43,7 +43,7 @@ The core message is simple:
 
 This is not a Spark replacement story; it is a Spark + Ray acceleration story.
 
-## Real-World Customer Impact (Anonymized)
+## Real-World Customer Impact 
 From a large global financial services customer:
 - Shorter model iteration cycles for portfolio and risk workflows
 - Faster simulation throughput for scenario analysis
@@ -61,13 +61,10 @@ From a large global financial services customer:
 - 7 min: Production readiness, governance, and operational patterns
 - 2 min: Q&A
 
-## Databricks Alignment
-Aligned with Databricks Ray-on-Spark architecture guidance:
-- https://community.databricks.com/t5/technical-blog/ray-on-spark-a-practical-architecture-and-setup-guide/ba-p/127511
 
 ## Contact
-- Name: [Your Name]
-- Title: [Your Title]
-- Email: [Email]
-- LinkedIn: [LinkedIn]
-- GitHub: [GitHub]
+- Name: Krish Kilaru
+- Title: Associate Director - Data & AI 
+- Email: Krish.Kilaru@lumenalta.com
+- LinkedIn: https://www.linkedin.com/in/brickster/
+- GitHub: https://github.com/krishkilaru-arch/acceleray
