@@ -1,9 +1,6 @@
-# Keep repo submission-only by default.
+# Keep repo minimal by default.
 *
 
-# Allow only the summit proposal package.
-!summit_proposal/
-!summit_proposal/**
-
-# Allow this file itself.
+# Allow only this README and gitignore.
+!README.md
 !.gitignore
