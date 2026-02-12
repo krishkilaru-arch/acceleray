@@ -1,0 +1,9 @@
+# Keep repo submission-only by default.
+*
+
+# Allow only the summit proposal package.
+!summit_proposal/
+!summit_proposal/**
+
+# Allow this file itself.
+!.gitignore
